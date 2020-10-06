@@ -1,0 +1,50 @@
+
+#let's leave safemode 
+hdfs dfsadmin -safemode leave
+
+# let's enter into hive prompt
+hive
+
+## let's create a table which columns defined for US election
+hive> CREATE TABLE senate_data (year INT ,state STRING ,state_po STRING ,state_ic INT,office STRING ,candidate STRING ,party STRING ,candidatevotes INT,totalvotes INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n';
+
+## now overwriting this table with our data of US election.
+hive> load data local inpath '/home/cloudera/Downloads/senate.csv' overwrite into table senate_data;
+
+## to display all existing tables
+hive> show tables;
+
+## to view senate data use 'create view' command
+hive> CREATE VIEW senate_view AS SELECT * FROM senate_data;
+hive> SELECT * FROM senate_view;
+
+#grouping data by election parties and will give total candidatevotes for each party
+hive> SELECT party , sum(candidatevotes) FROM senate_data GROUP BY party; 
+
+##grouping data by election parties and will give total candidatevotes for those parties having votes>=40k
+hive> SELECT party , sum(candidatevotes) FROM senate_data GROUP BY party having sum(candidatevotes)>=40000; 
+
+##grouping data by election parties and will give top 10 candidatevotes parties having votes>=40k
+hive> SELECT party , sum(candidatevotes) FROM senate_data GROUP BY party having sum(candidatevotes)>=40000 limit 10;
+
+## printing data in descending order of totalvotes
+hive> SELECT * FROM senate_data ORDER BY totalvotes DESC; 
+
+## printing top 10 totalvotes
+hive> SELECT * FROM senate_data ORDER BY totalvotes DESC limit 10;
+
+##printing every state with its candidatevotes given candidatevotes>=40k
+hive> SELECT state , sum(candidatevotes) FROM senate_data GROUP BY state having sum(candidatevotes)>=40000;
+
+## import data for US President election
+hive> CREATE TABLE president_data (year INT ,state STRING ,state_po STRING ,state_ic INT,office STRING ,candidate STRING ,party STRING ,candidatevotes INT,totalvotes INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n';
+
+##loading data from local storage
+hive> load data local inpath '/home/cloudera/Downloads/president.csv' overwrite into table president_data;
+
+##for viewing first 30 rows of US President election
+hive> CREATE VIEW president_view as SELECT * from president_data;
+hive> SELECT * from president_view limit 30;
+
+## Performing joins on both tables 
+hive> SELECT  state1, candidatevotes1 , totalvotes1  FROM president_data   FULL OUTER JOIN senate_data  ON president_data.state1 = senate_data.state limit 30;
