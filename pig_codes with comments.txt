@@ -1,0 +1,49 @@
+## lets get out of the safemode
+[cloudera@quickstart ~]$ hdfs dfsadmin -safemode leave
+
+## entering pig prompt
+[cloudera@quickstart ~]$ pig -x local
+
+#### loading dataset to pig.
+grunt> data1 = LOAD '/home/cloudera/Downloads/NIFTY_Data.csv' using PigStorage (',') as (Symbol:chararray,Date:date,Open:float,High:float,Low:float,Close:float,Adj_Close:float,Volume:int)
+
+## let's apply limit function and get only 10 entries instead of pasting entire dataset.
+
+grunt> head_data = LIMIT data1 10;
+grunt> DUMP head_data;
+
+
+## let's order this data by closing price so that we'll get stocks with highest closing price on top
+
+grunt> close_desc = ORDER data1 BY Close DESC;
+grunt> close_desc_10 = LIMIT close_desc 10;
+grunt> DUMP close_desc_10;
+
+
+## using filter command to extract stock prices of ITC and will group the data for further analysis.
+
+grunt> itc_data = FILTER data1 BY Symbol== "itc";
+grunt> itc_grouped = GROUP itc_data All;
+grunt> DUMP itc_grouped;
+
+
+## now we'll calculate average of volume column for ITC. 
+
+grunt> itc_avg_volume = FOREACH itc_grouped GENERATE AVG(itc_grouped.Volume) as itc_avg_volume;
+grunt> DUMP itc_avg_volume;
+
+
+
+## we'll calculate MEDIAN of volume column for ITC. 
+
+grunt> itc_med_volume = FOREACH itc_grouped GENERATE MEDIAN(itc_grouped.Volume);
+grunt> DUMP itc_med_volume;
+
+
+
+
+
+
+
+
+
